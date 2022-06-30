@@ -5,22 +5,41 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+  # create_infrastructure:
+  #   docker: 
+  #     - image: amazon/aws-cli
+  #   steps: 
+  #     - checkout 
+  #     - run: 
+  #         name: Create Cloudformation 
+  #         command: |
+  #           aws cloudformation deploy \
+  #               --template-file template.yml \
+  #               --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
+  #               --region us-east-1
+
+  configure_infrastructure:
     docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
-    steps:
+      - image: python:3.7-alpine3.11
+    steps: 
       - checkout
-      - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+      - add_ssh_keys: 
+          fingerprints: ["51:a3:30:a6:1f:ca:d1:70:73:f4:6a:3f:0c:fd:6a:21"]
+      - run: 
+          name: Install Ansible 
+          command: |
+              apk add --update ansible 
+      - run: 
+          name: Run Playbook and Configure server
+          command: |
+              ansible-playbook -i inventory main-remote.yml
+              
+
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   say-hello-workflow:
     jobs:
-      - say-hello
+      - configure_infrastructure
+
