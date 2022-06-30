@@ -30,6 +30,10 @@ jobs:
           command: |
               apk add --update ansible 
       - run: 
+          name: Install openssh
+          command: |
+            apk add openssh
+      - run: 
           name: Run Playbook and Configure my server
           command: |
               ansible-playbook -i inventory main-remote.yml
